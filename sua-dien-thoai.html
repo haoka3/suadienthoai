@@ -314,6 +314,11 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Tối ưu rendering */
+    will-change: auto;
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .xo-slider {
@@ -326,12 +331,28 @@ a {
     z-index: 1;
     background-size: cover;
     background-position: center;
+    /* Tối ưu animation - dùng transform3d để GPU acceleration */
+    will-change: transform, background-image;
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* Tắt animation zoom khi scroll để tránh lag */
     animation: zoomIn 20s ease-in-out infinite;
 }
 
 @keyframes zoomIn {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    0%, 100% { 
+        transform: translate3d(0, 0, 0) scale(1); 
+    }
+    50% { 
+        transform: translate3d(0, 0, 0) scale(1.05); 
+    }
+}
+
+/* Tắt animation khi scroll để tối ưu performance */
+.xo-hero.scrolling .xo-slider {
+    animation: none;
+    transform: translate3d(0, 0, 0) scale(1);
 }
 
 .xo-hero::before {
@@ -359,16 +380,19 @@ a {
     max-width: 1200px;
     margin: 0 auto;
     animation: fadeInUp 1s ease-out;
+    /* GPU acceleration */
+    will-change: transform, opacity;
+    transform: translateZ(0);
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translate3d(0, 30px, 0);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
     }
 }
 
@@ -411,16 +435,21 @@ a {
     font-weight: 500;
     padding: 25px 30px;
     background: rgba(255,255,255,0.15);
+    /* Tối ưu backdrop-filter - chỉ dùng khi cần */
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.2);
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     min-width: 200px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .xo-feature-item:hover {
-    transform: translateY(-10px) scale(1.05);
+    transform: translate3d(0, -10px, 0) scale(1.05);
     background: rgba(255,255,255,0.25);
     box-shadow: 0 15px 40px rgba(0,0,0,0.2);
 }
@@ -464,11 +493,14 @@ a {
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     letter-spacing: 0.5px;
     text-transform: uppercase;
     z-index: 1;
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .xo-btn-call::before, .xo-btn-register::before {
@@ -506,7 +538,7 @@ a {
 }
 
 .xo-btn-call:hover {
-    transform: translateY(-5px) scale(1.08);
+    transform: translate3d(0, -5px, 0) scale(1.08);
     box-shadow: 0 15px 40px rgba(17, 153, 142, 0.6);
 }
 
@@ -516,7 +548,7 @@ a {
 }
 
 .xo-btn-register:hover {
-    transform: translateY(-5px) scale(1.08);
+    transform: translate3d(0, -5px, 0) scale(1.08);
     box-shadow: 0 15px 40px rgba(245, 87, 108, 0.6);
 }
 
@@ -685,14 +717,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Parallax effect cho hero section
-window.addEventListener('scroll', function() {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.xo-hero');
-    if (hero && scrolled < hero.offsetHeight) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+// Tối ưu scroll performance - tắt animation khi scroll
+let isScrolling = false;
+let scrollTimer = null;
+const hero = document.querySelector('.xo-hero');
+
+// Throttle function để tối ưu performance
+function throttle(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Tắt animation khi scroll để tránh lag
+const handleScroll = throttle(function() {
+    if (hero) {
+        hero.classList.add('scrolling');
+        isScrolling = true;
+        
+        // Clear timer nếu đang scroll
+        if (scrollTimer) {
+            clearTimeout(scrollTimer);
+        }
+        
+        // Bật lại animation sau khi dừng scroll 500ms
+        scrollTimer = setTimeout(function() {
+            hero.classList.remove('scrolling');
+            isScrolling = false;
+        }, 500);
     }
-});
+}, 16); // ~60fps
+
+window.addEventListener('scroll', handleScroll, { passive: true });
 </script>
 
 
