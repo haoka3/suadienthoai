@@ -216,6 +216,77 @@
       .btn{transition:none}
       .btn:hover{transform:none}
     }
+
+
+    /* =========================
+   RESPONSIVE AUTO SCALE
+   ========================= */
+
+/* Font tự co giãn theo màn hình */
+html {
+  font-size: clamp(14px, 1.1vw, 16px);
+}
+
+/* Giữ layout không bị tràn ngang */
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Container co giãn thông minh */
+.wrap {
+  width: 100%;
+  padding-left: clamp(12px, 4vw, 22px);
+  padding-right: clamp(12px, 4vw, 22px);
+}
+
+/* Card tự co đều */
+.card {
+  min-width: 0;
+}
+
+/* Nút bấm dễ chạm trên mobile */
+.btn {
+  min-height: 44px; /* chuẩn Apple & Google */
+  font-size: clamp(14px, 1vw, 15px);
+}
+
+/* Input dễ gõ trên điện thoại */
+.search input {
+  font-size: 16px; /* tránh zoom iOS */
+}
+
+/* Tablet (≥768px) */
+@media (min-width: 768px) {
+  .grid {
+    gap: 14px;
+  }
+}
+
+/* Laptop (≥1024px) */
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+/* Màn hình lớn (≥1400px) – không bị dàn quá rộng */
+@media (min-width: 1400px) {
+  .wrap {
+    max-width: 1200px;
+  }
+}
+
+/* Mobile nhỏ (≤360px) */
+@media (max-width: 360px) {
+  h1 {
+    font-size: 18px;
+  }
+  .sub {
+    font-size: 13px;
+  }
+}
+
   </style>
 </head>
 
@@ -399,4 +470,5 @@
   </script>
 </body>
 </html>
+
 
